@@ -1,8 +1,12 @@
 from calendar import timegm
 from datetime import datetime
-from StringIO import StringIO
 from zipfile import ZipFile
 from .base import Module, extract_value
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 
 class Scan(Module):

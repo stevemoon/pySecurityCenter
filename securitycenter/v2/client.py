@@ -1,9 +1,13 @@
 import json
 from random import randint
-from urlparse import urljoin
 from requests import Session
 from .exceptions import raise_for_error
 from . import modules
+
+try:
+    from urlparse import urljoin
+except ImportError:
+    from urllib.parse import urljoin
 
 
 class Client(object):
@@ -110,7 +114,7 @@ class Client(object):
 
         # clean up input as SC expects it
         processed_input = {}
-        for key, value in input.iteritems():
+        for key, value in input.items():
             if value is None:
                 continue
 

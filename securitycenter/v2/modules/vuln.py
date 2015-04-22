@@ -71,7 +71,7 @@ class Vuln(Module):
         if filters is None:
             filters = []
 
-        for key, value in filter_by.iteritems():
+        for key, value in filter_by.items():
             filters.append({
                 'filterName': key,
                 'operator': '=',

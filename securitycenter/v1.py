@@ -1,19 +1,22 @@
 import calendar
-from datetime import date, datetime, timedelta
-import httplib
+from datetime import date, datetime, timedelta, time
 import logging
 import mimetypes
 import os
 import random
-from StringIO import StringIO
-from urllib import urlencode
-import urllib2
-from urllib2 import urlopen, Request
 from zipfile import ZipFile
 
-# Here we will attempt to import the simplejson module if it exists, otherwise
-# we will fall back to json.  This should solve a lot of issues with python 2.4
-# and 3.x.
+try:
+    import httplib
+    from StringIO import StringIO
+    from urllib import urlencode
+    from urllib2 import urlopen, Request, HTTPSHandler, build_opener, install_opener
+except ImportError:
+    import http.client as httplib
+    from io import StringIO
+    from urllib.parse import urlencode
+    from urllib.request import urlopen, Request, HTTPSHandler, build_opener, install_opener
+
 try:
     import simplejson as json
 except ImportError:
@@ -25,9 +28,9 @@ except ImportError:
 try:
     import ssl
 
-    class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
+    class HTTPSClientAuthHandler(HTTPSHandler):
         def __init__(self, key, cert):
-            urllib2.HTTPSHandler.__init__(self)
+            HTTPSHandler.__init__(self)
             self.key = key
             self.cert = cert
 
@@ -75,8 +78,8 @@ class SecurityCenter(object):
         # Build and install an HTTPS opener if SSL support is available
         if ssl is not None and None not in (key, cert):
             cert_handler = HTTPSClientAuthHandler(key, cert)
-            opener = urllib2.build_opener(cert_handler)
-            urllib2.install_opener(opener)
+            opener = build_opener(cert_handler)
+            install_opener(opener)
 
         # Debugging Log Settings...
         self._log = logging.getLogger('pySecurityCenter')
@@ -99,7 +102,7 @@ class SecurityCenter(object):
         intrev = 0
         vsplit = version.split('.')
         for c in range(len(vsplit)):
-            item = int(vsplit[c]) * (10 ** (((len(vsplit) - c - 1) * 2)))
+            item = int(vsplit[c]) * (10 ** ((len(vsplit) - c - 1) * 2))
             intrev += item
         return intrev
 
@@ -591,12 +594,7 @@ class SecurityCenter(object):
             "group": group,
             "visibility": visibility
         }
-
-        data = dict(
-            (key, value) for key, value in data.iteritems()
-            if value is not None
-        )
-
+        data = dict((key, data[key]) for key in data if data[key] is not None)
         return self.raw_query("credential", "add", data=data)
 
     #TODO: credential_share_simulate
@@ -643,16 +641,21 @@ class SecurityCenter(object):
 
         # If there was a filter given, we will need to populate that.
         if len(filterset) > 0:
-            fname = filterset.keys()[0]
+            fname = list(filterset)[0]
             if fname in self._xrefs:
                 fname = 'xrefs:%s' % fname.replace('_', '-')
             payload['filterField'] = fname
-            payload['filterString'] = filterset[filterset.keys()[0]]
+            payload['filterString'] = filterset[fname]
 
         # We also need to check if there was a datetime object sent to us and
         # parse that down if given.
-        if since is not None and isinstance(since, date):
-            payload['since'] = calendar.timegm(since.utctimetuple())
+        if since is not None:
+            if isinstance(since, datetime):
+                since = calendar.timegm(since.utctimetuple())
+            elif isinstance(since, date):
+                since = calendar.timegm(datetime.combine(since, time()).utctimetuple())
+
+            payload['since'] = since
 
         # And now we run through the loop needed to pull all of the data.  This
         # may take some time even though we are pulling large data sets.  At

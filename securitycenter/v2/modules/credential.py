@@ -106,7 +106,7 @@ class Credential(Module):
             'users': users
         })
         kwargs = dict(
-            (key, value) for key, value in kwargs.iteritems()
+            (key, value) for key, value in kwargs.items()
             if value is not None
         )
         input.update(kwargs)

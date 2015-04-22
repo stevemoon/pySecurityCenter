@@ -1,5 +1,10 @@
 from .base import Module, extract_value
 
+try:
+    from __builtin__ import basestring
+except ImportError:
+    basestring = str
+
 
 class File(Module):
     _name = 'file'
