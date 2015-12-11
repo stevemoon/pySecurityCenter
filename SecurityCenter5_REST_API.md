@@ -23,7 +23,7 @@ The SecurityCenter5 object will prepend all of the selevent connection informati
 response = sc.get('status')
 ````
 
-There has been a convience function added for querying the system, as the analysis API call has a lot of capability, and as such, leverages a fairly complex call.  You are ofcourse welcome to use a sc.post call to perform this operation yourself, but sc.analysis() is there to make your life a little easier.
+There has been a convenience function added for querying the system, as the analysis API call has a lot of capability, and as such, leverages a fairly complex call.  You are ofcourse welcome to use a sc.post call to perform this operation yourself, but sc.analysis() is there to make your life a little easier.
 
 Firstly, the analysis function is coded a it differently than query is in the SC4 API.  This is an attempt to both make the function more useful, as well as to conform to the new API calls behind the scene.  For example, to get the top 100 most vulnerable hosts, you would perform the following:
 
